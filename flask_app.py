@@ -5,11 +5,27 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = "012345ABCDEF"
 socket = SocketIO(app)
 
+users = []
+
+@socket.on('connected')
+def connect_handle(data):
+    print('received json: ' + str(data))
+    users.append(data["user"])
+
+@socket.on('disconnecting')
+def disconnect_handle(data):
+    print('received: ' + str(data))
+    users.pop(users.index(data["user"]))
+
 @app.route("/")
 def index():
     return render_template("index.html")
 
-@app.route("/script/<script_name>")
+@app.route('/view')
+def view():
+    return str(users)
+
+@app.route("/script/<src>")
 def script(src):
     if src == "websockets":
         return render_template("websockets.js")
